@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>todoMVC</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+    <input id="toggle-all" type="checkbox">
+    <input id="user-input" type="text">
+    <div id="todo-list"></div>
+    <div id="footer"></div>
+
+    <script id="todoListPre" type="text/x-handlebars-template">
+        <ul id="todoList">
+            {{#each this}}
+            <li data-id="{{id}}">
+                <input class="toggle" type="checkbox" {{#if completed}}checked{{else}}{{/if}}>
+                <div class="view">
+                    <label>{{title}}</label>
+                </div>
+                <input class="edit" type="text" value="{{title}}">
+                <button class="delete">X</button>
+            </li> {{/each}}
+        </ul>
+    </script>
+
+    <script id="footerPre" type="text/x-handlebars-template">
+        <p>{{completeCount}} item{{todoWord}} complete.</p>
+        <a href="#/all">All</a>
+        <a href="#/active">Active</a>
+        <a href="#/completed">Completed</a> {{#if completeCount}}
+        <button id="delete-completed"><a href="#/all">Clear completed</a></button> {{/if}}
+    </script>
+
+    <script src="./components/jquery/dist/jquery.js"></script>
+    <script src="./components/handlebars/handlebars.js"></script>
+    <script src="./components/director/build/director.js"></script>
+    <script src="./app.js"></script>
+</body>
+
+</html>
