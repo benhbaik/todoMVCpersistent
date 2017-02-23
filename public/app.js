@@ -29,6 +29,68 @@ $(function() {
             } else {
                 return JSON.parse(localStorage.getItem(namespace)) || [];
             }
+        },
+        getTodos: function() {
+            $.ajax({
+                url: '/todos/all',
+                method: 'GET',
+                dataType: 'json'
+            }).done(function(data) {
+                console.log('all', data);
+            });
+        },
+        addTodo: function() {
+            $.ajax({
+                url: '/todos/all',
+                method: 'POST',
+                dataType: 'json',
+                data: {
+                    title: 'add from ajax request!',
+                    completed: false
+                }
+            }).done(function(data) {
+                console.log('added', data);
+            });
+        },
+        getCompletedTodos: function() {
+            $.ajax({
+                url: '/todos/completed',
+                method: 'GET',
+                dataType: 'json'
+            }).done(function(data) {
+                console.log('completed', data);
+            });
+        },
+        getActiveTodos: function() {
+            $.ajax({
+                url: '/todos/active',
+                method: 'GET',
+                dataType: 'json'
+            }).done(function(data) {
+                console.log('active', data);
+            });
+        },
+        editTodo: function() {
+            $.ajax({
+                url: '/todos/edit/58ae3fead3d8b8ad1d7a4d3d',
+                method: 'PUT',
+                dataType: 'json',
+                data: {
+                    title: 'edited w/ ajax!',
+                    completed: true
+                }
+            }).done(function(data) {
+                console.log('edited', data);
+            });
+        },
+        deleteTodo: function() {
+            $.ajax({
+                url: '/todos/delete/58ae3fefd3d8b8ad1d7a4d3e',
+                method: 'DELETE',
+                dataType: 'json'
+            }).done(function(data) {
+                console.log('edited', data);
+            });
         }
     }
 
@@ -99,7 +161,7 @@ $(function() {
             this.render();
         },
         deleteCompleted: function() {
-            var incomplete = this.getIncompleteTodos();
+            var incomplete = this.getActiveTodos();
 
             this.todos = incomplete;
             this.render();
@@ -157,10 +219,10 @@ $(function() {
             }
             return completed;
         },
-        getIncompleteTodos: function() {
-            var incomplete = this.todos.filter(getIncomplete);
+        getActiveTodos: function() {
+            var incomplete = this.todos.filter(getActive);
 
-            function getIncomplete(todo) {
+            function getActive(todo) {
                 return todo.completed === false;
             }
             return incomplete;
@@ -171,7 +233,7 @@ $(function() {
             } else if (this.filter === 'completed') {
                 return this.getCompletedTodos();
             } else if (this.filter === 'active') {
-                return this.getIncompleteTodos();
+                return this.getActiveTodos();
             }
         }
     };
