@@ -36,7 +36,7 @@ $(function() {
                 url: `/todos/delete/${id}`,
                 method: 'DELETE'
             }).done(function(data) {
-                console.log(data);
+                todoInterface.getAllTodos();
             });
         },
         // edit OR toggle todos
@@ -68,7 +68,6 @@ $(function() {
         deleteTodo: function(e) {
             const elId = $(e.target).closest('li').data('id');
             todoInterface.deleteTodo(elId);
-            todoInterface.getAllTodos();
         }
     }
 
