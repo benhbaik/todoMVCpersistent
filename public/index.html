@@ -18,7 +18,7 @@
     <script id="todoListPre" type="text/x-handlebars-template">
         <ul id="todoList">
             {{#each this}}
-            <li data-id="{{id}}">
+            <li data-id="{{_id}}">
                 <input class="toggle" type="checkbox" {{#if completed}}checked{{else}}{{/if}}>
                 <div class="view">
                     <label>{{title}}</label>
