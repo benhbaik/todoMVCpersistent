@@ -37,7 +37,6 @@ $(function() {
                 method: 'DELETE'
             }).done(function(data) {
                 console.log(data);
-                view.render();
             });
         },
         // edit OR toggle todos
@@ -57,7 +56,6 @@ $(function() {
             this.todoListSource = $('#todoListPre').html();
             this.todoListTemplate = Handlebars.compile(this.todoListSource);
             view.bindEvents();
-            view.render();
         },
         getAllTodos: function() {
             todoInterface.getAllTodos();
@@ -69,19 +67,8 @@ $(function() {
         },
         deleteTodo: function(e) {
             const elId = $(e.target).closest('li').data('id');
-            let index = util.getIndexFromEl(elId);
-            console.log(index);
-            //
-            // util.todoList.splice(index, 1);
-            // todoInterface.deleteTodo(elId);
-        },
-        getIndexFromEl: function(id) {
-            let i = this.todoList.length;
-            console.log(i);
-
-            while (i--) {
-                if (id === this.todoList[i].id) return i;
-            }
+            todoInterface.deleteTodo(elId);
+            todoInterface.getAllTodos();
         }
     }
 
