@@ -127,6 +127,7 @@ $(function() {
             }
         },
         triggerMasterToggle: function() {
+            if (util.todos.length === 0) return;
             if (util.completedTodos.length === util.todos.length) {
                 $('#toggle-all').prop('checked', true);
             }
