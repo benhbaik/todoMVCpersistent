@@ -2,11 +2,13 @@ $(function() {
     'use-strict';
 
     const todoInterface = {
+        // optimize this!
         getAllTodos: function() {
             return $.get('/todos/all').done(function(data) {
-                util.todos = data;
+                util.setAllTodos(data);
                 util.setCompletedTodos();
                 util.setActiveTodos();
+                util.triggerMasterToggle();
                 view.render();
             });
         },
@@ -56,18 +58,17 @@ $(function() {
                 method: 'PUT',
                 data: { completed: status }
             }).done(function(data) {
-                todoInterface.getAllTodosSynced(data.completed);
+                todoInterface.getAllTodos();
             });
         },
-        getAllTodosSynced: function(lastTodoStatus) {
-            return $.get('/todos/all').done(function(data) {
-                util.todos = data;
-                util.setCompletedTodos();
-                if (lastTodoStatus && util.todos.length === util.completedTodos.length) {
-                    util.triggerMasterToggle(lastTodoStatus);
-                }
-                util.triggerMasterToggle(lastTodoStatus);
-                view.render();
+        // toggles all todos to true or false
+        toggleAllTodos: function(status) {
+            return $.ajax({
+                url: '/todos/toggle',
+                method: 'PUT',
+                data: { completed: status }
+            }).done(function() {
+                todoInterface.getAllTodos();
             });
         }
     }
@@ -78,14 +79,20 @@ $(function() {
             this.todoListTemplate = Handlebars.compile(this.todoListSource);
             view.bindEvents();
         },
-        getAllTodos: function() {
-            todoInterface.getAllTodos();
+        setAllTodos: function(data) {
+            util.todos = data;
         },
-        getActiveTodos: function() {
-            todoInterface.getActiveTodos();
+        setActiveTodos: function() {
+            util.activeTodos = util.todos.filter(isItActive);
+            function isItActive(todo) {
+                if (todo.completed === false) return true;
+            }
         },
-        getCompletedTodos: function() {
-            todoInterface.getCompletedTodos();
+        setCompletedTodos: function() {
+            util.completedTodos = util.todos.filter(isItCompleted);
+            function isItCompleted(todo) {
+                if (todo.completed === true) return true;
+            }
         },
         addTodo: function(e) {
             const input = e.target.value;
@@ -112,31 +119,20 @@ $(function() {
             todoInterface.toggleTodo(todoId, todoStatus);
         },
         toggleAll: function(e) {
-            // make a toggle all to completed and all to active api route???
-            // master toggle not working
-            // if todos are not all true make them all true
-            // if todos are all true make them false
-            if (util.completedTodos < util.todos) {
-
+            if (util.activeTodos.length === util.todos.length) {
+                todoInterface.toggleAllTodos(true);
             }
-            if (util.activeTodos === util.todos) {
-                $(e.target).prop('checked', false);
+            if (util.completedTodos.length > 0) {
+                todoInterface.toggleAllTodos(false);
             }
         },
-        setCompletedTodos: function() {
-            util.completedTodos = util.todos.filter(isItCompleted);
-            function isItCompleted(todo) {
-                if (todo.completed === true) return true;
+        triggerMasterToggle: function() {
+            if (util.completedTodos.length === util.todos.length) {
+                $('#toggle-all').prop('checked', true);
             }
-        },
-        setActiveTodos: function() {
-            util.activeTodos = util.todos.filter(isItActive);
-            function isItActive(todo) {
-                if (todo.completed === false) return true;
+            if (util.completedTodos.length < util.todos.length) {
+                $('#toggle-all').prop('checked', false);
             }
-        },
-        triggerMasterToggle: function(lastTodoStatus) {
-            $('#toggle-all').prop('checked', lastTodoStatus);
         }
     }
 

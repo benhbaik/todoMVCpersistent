@@ -45,7 +45,16 @@ router.route('/edit/:id')
             else if (todo) res.status(200).json(todo);
         });
     });
-
+router.route('/toggle')
+    .put(function(req, res) {
+        var value = JSON.parse(req.body.completed);
+        var query = { completed: !value };
+        var update = { $set: { completed: value }};
+        Todo.updateMany(query, update, function(err, todos) {
+            if (err) res.status(500).json(err);
+            else if (todos) res.status(200).json(todos);
+        });
+    });
 router.route('/toggle/:id')
     .put(function(req, res) {
         var query = { _id: req.params.id };
@@ -56,7 +65,6 @@ router.route('/toggle/:id')
             else if (todo) res.status(200).json(todo);
         });
     });
-
 router.route('/delete/:id')
     .delete(function(req, res) {
         var query = { _id: req.params.id };
