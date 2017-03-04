@@ -5,21 +5,21 @@ $(function() {
         // optimize this!
         getAllTodos: function() {
             return $.get('/todos/all').done(function(data) {
-                util.setAllTodos(data);
-                util.setCompletedTodos();
-                util.setActiveTodos();
-                util.triggerMasterToggle();
+                todosPool.setAllTodos(data);
+                // todosPool.setCompletedTodos();
+                // todosPool.setActiveTodos();
+                todosPool.triggerMasterToggle();
                 view.render();
             });
         },
         getActiveTodos: function() {
                 return $.get('/todos/active').done(function(data) {
-                    util.activeTodos = data;
+                    todosPool.activeTodos = data;
                 });
         },
         getCompletedTodos: function() {
                 return $.get('/todos/completed').done(function(data) {
-                    util.completedTodos = data;
+                    todosPool.completedTodos = data;
                 });
         },
         createTodoObject: function(todo) {
@@ -29,18 +29,12 @@ $(function() {
             }
         },
         addTodo: function(todo) {
-            return $.post('/todos/all', this.createTodoObject(todo))
-                .done(function(data) {
-                    util.todos.push(data);
-                    view.render();
-                });
+            return $.post('/todos/all', this.createTodoObject(todo));
         },
         deleteTodo: function(id) {
-            $.ajax({
+            return $.ajax({
                 url: `/todos/delete/${id}`,
                 method: 'DELETE'
-            }).done(function(data) {
-                todoInterface.getAllTodos();
             });
         },
         editTodo: function(id, todo) {
@@ -48,8 +42,6 @@ $(function() {
                 url: `/todos/edit/${id}`,
                 method: 'PUT',
                 data: { title: todo }
-            }).done(function(data) {
-                todoInterface.getAllTodos();
             });
         },
         toggleTodo: function(id, status) {
@@ -72,36 +64,83 @@ $(function() {
             });
         }
     }
-    const util = {
-        init: function() {
-            todoInterface.getAllTodos();
-            this.todoListSource = $('#todoListPre').html();
-            this.todoListTemplate = Handlebars.compile(this.todoListSource);
-            view.bindEvents();
+
+    const todosToolbox = {
+        getIndexOfTodo: function(array, todo) {
+            return array.indexOf(todo);
         },
+        compositeDelete: function(array, todo) {
+            const todoIndex = this.getIndexOfTodo(array, todo);
+            array.splice(todoIndex, 1);
+            this.deleteFromAll(todo);
+        },
+        deleteFromAll: function(todo) {
+            const allTodosIndex = this.getIndexOfTodo(todosPool.allTodos, todo);
+            todosPool.allTodos.splice(allTodosIndex, 1);
+        },
+        compositeEdit: function(array, editedTodo) {
+            const todoIndex = array.findIndex(function(todo) {
+                return editedTodo._id === todo._id;
+            });
+            array.splice(todoIndex, 1, editedTodo);
+            this.editFromAll(editedTodo);
+        },
+        editFromAll: function(todo) {
+            const allTodosIndex = this.getIndexOfTodo(todosPool.allTodos, todo);
+            todosPool.allTodos.splice(allTodosIndex, 1, todo);
+        }
+        // function deleteFromActive() {
+        //     const activeTodosIndex = todosPool.activeTodos.indexOf(todoToDelete);
+        //     todosPool.activeTodos.splice(activeTodosIndex, 1);
+        //     deleteFromAll();
+        // }
+        // function deleteFromCompleted() {
+        //     const completedTodosIndex = todosPool.completedTodos.indexOf(todoToDelete);
+        //     todosPool.completedTodos.splice(completedTodosIndex, 1);
+        //     deleteFromAll();
+        // }
+        // function deleteFromAll() {
+        //     const todosIndex = todosPool.allTodos.indexOf(todoToDelete);
+        //     todosPool.allTodos.splice(todosIndex, 1);
+        // }
+    }
+
+    const todosPool = {
+        allTodos: [],
+        activeTodos: [],
+        completedTodos: [],
+        // get all todos from ajax call
+        // sort todos out into categories
+
         setAllTodos: function(data) {
-            util.todos = data;
-        },
-        setActiveTodos: function() {
-            util.activeTodos = util.todos.filter(isItActive);
-            function isItActive(todo) {
-                if (todo.completed === false) return true;
-            }
-        },
-        setCompletedTodos: function() {
-            util.completedTodos = util.todos.filter(isItCompleted);
-            function isItCompleted(todo) {
-                if (todo.completed === true) return true;
-            }
+            todosPool.allTodos = data;
+            $.each(todosPool.allTodos, function(index, todo) {
+                todo.completed ? todosPool.completedTodos.push(todo) : todosPool.activeTodos.push(todo);
+            });
         },
         addTodo: function(e) {
             const input = e.target.value;
-            todoInterface.addTodo(input);
+            todoInterface.addTodo(input).done(function(todo) {
+                todosPool.allTodos.push(todo);
+                todosPool.activeTodos.push(todo);
+                view.render();
+            });
             e.target.value = '';
         },
         deleteTodo: function(e) {
-            const elId = $(e.target).closest('li').data('id');
-            todoInterface.deleteTodo(elId);
+            const li = $(e.target).closest('li');
+            const elId = li.data('id');
+            const todoToDelete = todosPool.allTodos.find(compareId);
+
+            todoInterface.deleteTodo(elId).done(function (todo) {
+                const arrayToSplice = todo.completed ? todosPool.completedTodos : todosPool.activeTodos;
+                todosToolbox.compositeDelete(arrayToSplice, todoToDelete);
+                li.remove()
+            });
+
+            function compareId(todo) {
+                return todo._id === elId;
+            }
         },
         activateEdit: function(e) {
             const editInput = $(e.target).closest('li').find('.edit');
@@ -111,7 +150,11 @@ $(function() {
         editTodo: function(e) {
             const todoId = $(e.target).closest('li').data('id');
             const newTodo = e.target.value;
-            todoInterface.editTodo(todoId, newTodo);
+            todoInterface.editTodo(todoId, newTodo).done(function(todo) {
+                const arrayToSplice = todo.completed ? todosPool.completedTodos : todosPool.activeTodos;
+                todosToolbox.compositeEdit(arrayToSplice, todo);
+                view.render();
+            });
         },
         toggleTodo: function(e) {
             const todoId = $(e.target).closest('li').data('id');
@@ -119,36 +162,51 @@ $(function() {
             todoInterface.toggleTodo(todoId, todoStatus);
         },
         toggleAll: function(e) {
-            if (util.activeTodos.length === util.todos.length) {
+            if (todosPool.activeTodos.length === todosPool.allTodos.length) {
                 todoInterface.toggleAllTodos(true);
             }
-            if (util.completedTodos.length > 0) {
+            if (todosPool.completedTodos.length > 0) {
                 todoInterface.toggleAllTodos(false);
             }
         },
         triggerMasterToggle: function() {
-            if (util.todos.length === 0) return;
-            if (util.completedTodos.length === util.todos.length) {
+            if (todosPool.allTodos.length === 0) return;
+            if (todosPool.completedTodos.length === todosPool.allTodos.length) {
                 $('#toggle-all').prop('checked', true);
             }
-            if (util.completedTodos.length < util.todos.length) {
+            if (todosPool.completedTodos.length < todosPool.allTodos.length) {
                 $('#toggle-all').prop('checked', false);
             }
         }
     }
 
     const view = {
+        init: function() {
+            todoInterface.getAllTodos();
+            this.todoListSource = $('#todoListPre').html();
+            this.todoListTemplate = Handlebars.compile(this.todoListSource);
+
+            this.footerSource = $('#footerPre').html();
+            this.footerTemplate = Handlebars.compile(this.footerSource);
+
+            this.bindEvents();
+        },
         render: function() {
-            $('#todo-list').html(util.todoListTemplate(util.todos));
+            $('#todo-list').html(this.todoListTemplate(todosPool.allTodos));
+            $('#footer').html(this.footerTemplate(todosPool));
+        },
+        renderFooter: function() {
+
         },
         bindEvents: function() {
-            $('#user-input').on('change', util.addTodo.bind(this));
-            $('#toggle-all').on('click', util.toggleAll.bind(this));
-            $('#todo-list').on('click', '.delete', util.deleteTodo.bind(this))
-                .on('click', '.toggle', util.toggleTodo.bind(this))
-                .on('dblclick', 'li', util.activateEdit.bind(this))
-                .on('change', '.editing', util.editTodo.bind(this));
+            $('#user-input').on('change', todosPool.addTodo.bind(this));
+            $('#toggle-all').on('click', todosPool.toggleAll.bind(this));
+            $('#todo-list')
+                .on('click', '.delete', todosPool.deleteTodo)
+                .on('click', '.toggle', todosPool.toggleTodo.bind(this))
+                .on('dblclick', 'li', todosPool.activateEdit.bind(this))
+                .on('change', '.editing', todosPool.editTodo.bind(this));
         }
     }
-    util.init();
+    view.init();
 });
