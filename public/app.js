@@ -98,7 +98,6 @@ $(function() {
             if (value) {
                 todosPool.completedTodos = todosPool.allTodos;
                 todosPool.activeTodos = [];
-
             } else {
                 todosPool.activeTodos = todosPool.allTodos;
                 todosPool.completedTodos = [];
@@ -125,7 +124,6 @@ $(function() {
                 todosToolbox.masterToggleTest();
                 view.render();
             });
-
         },
         addTodo: function(e) {
             const input = e.target.value;
@@ -153,7 +151,6 @@ $(function() {
         },
         activateEdit: function(e) {
             const editInput = $(e.target).closest('li').find('.edit');
-
             editInput.removeClass('edit').addClass('editing');
             editInput.val(editInput.val()).focus();
         },
@@ -185,7 +182,6 @@ $(function() {
         toggleAll: function(e) {
             const $masterToggle = $(e.target);
             const value = $masterToggle.prop('checked');
-            console.log(value);
 
             todoInterface.toggleAllTodos(value).done(function() {
                 todosToolbox.compositeToggleAll(value);
@@ -199,18 +195,16 @@ $(function() {
             todosPool.init();
             this.todoListSource = $('#todoListPre').html();
             this.todoListTemplate = Handlebars.compile(this.todoListSource);
-
             this.footerSource = $('#footerPre').html();
             this.footerTemplate = Handlebars.compile(this.footerSource);
-
             this.bindEvents();
         },
         render: function() {
             $('#todo-list').html(this.todoListTemplate(todosPool.allTodos));
-            $('#footer').html(this.footerTemplate(todosPool));
+            this.renderFooter();
         },
         renderFooter: function() {
-
+            $('#footer').html(this.footerTemplate(todosPool));
         },
         bindEvents: function() {
             $('#user-input').on('change', todosPool.addTodo);
