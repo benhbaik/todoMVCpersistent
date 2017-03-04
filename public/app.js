@@ -2,15 +2,8 @@ $(function() {
     'use-strict';
 
     const todoInterface = {
-        // optimize this!
         getAllTodos: function() {
-            return $.get('/todos/all').done(function(data) {
-                todosPool.setAllTodos(data);
-                // todosPool.setCompletedTodos();
-                // todosPool.setActiveTodos();
-                todosPool.triggerMasterToggle();
-                view.render();
-            });
+            return $.get('/todos/all');;
         },
         getActiveTodos: function() {
                 return $.get('/todos/active').done(function(data) {
@@ -49,23 +42,24 @@ $(function() {
                 url: `/todos/toggle/${id}`,
                 method: 'PUT',
                 data: { completed: status }
-            }).done(function(data) {
-                todoInterface.getAllTodos();
             });
         },
-        // toggles all todos to true or false
         toggleAllTodos: function(status) {
             return $.ajax({
                 url: '/todos/toggle',
                 method: 'PUT',
                 data: { completed: status }
-            }).done(function() {
-                todoInterface.getAllTodos();
             });
         }
     }
 
     const todosToolbox = {
+        sortAndSetAllTodos: function(data) {
+            todosPool.allTodos = data;
+            $.each(todosPool.allTodos, function(index, todo) {
+                todo.completed ? todosPool.completedTodos.push(todo) : todosPool.activeTodos.push(todo);
+            });
+        },
         getIndexOfTodo: function(array, todo) {
             return array.indexOf(todo);
         },
@@ -83,40 +77,55 @@ $(function() {
                 return editedTodo._id === todo._id;
             });
             array.splice(todoIndex, 1, editedTodo);
-            this.editFromAll(editedTodo);
+            this.editForAll(editedTodo);
         },
-        editFromAll: function(todo) {
+        editForAll: function(todo) {
             const allTodosIndex = this.getIndexOfTodo(todosPool.allTodos, todo);
             todosPool.allTodos.splice(allTodosIndex, 1, todo);
+        },
+        compositeToggle: function(arrayToRemoveFrom, arrayToAddTo, todo) {
+            const removeIndex = this.getIndexOfTodo(arrayToRemoveFrom, todo);
+            arrayToAddTo.push(todo);
+            arrayToRemoveFrom.splice(removeIndex, 1);
+            console.log('active', todosPool.activeTodos);
+            console.log('completed', todosPool.completedTodos);
+        },
+        compositeToggleAll: function(value) {
+            $.each(todosPool.allTodos, function(index, todo) {
+                todo.completed = value;
+            });
+
+            if (value) {
+                todosPool.completedTodos = todosPool.allTodos;
+                todosPool.activeTodos = [];
+
+            } else {
+                todosPool.activeTodos = todosPool.allTodos;
+                todosPool.completedTodos = [];
+            }
+        },
+        masterToggleTest: function() {
+            const $masterToggle = $('#toggle-all');
+
+            if (todosPool.completedTodos.length === todosPool.allTodos.length) {
+                $masterToggle.prop('checked', true);
+            } else {
+                $masterToggle.prop('checked', false);
+            }
         }
-        // function deleteFromActive() {
-        //     const activeTodosIndex = todosPool.activeTodos.indexOf(todoToDelete);
-        //     todosPool.activeTodos.splice(activeTodosIndex, 1);
-        //     deleteFromAll();
-        // }
-        // function deleteFromCompleted() {
-        //     const completedTodosIndex = todosPool.completedTodos.indexOf(todoToDelete);
-        //     todosPool.completedTodos.splice(completedTodosIndex, 1);
-        //     deleteFromAll();
-        // }
-        // function deleteFromAll() {
-        //     const todosIndex = todosPool.allTodos.indexOf(todoToDelete);
-        //     todosPool.allTodos.splice(todosIndex, 1);
-        // }
     }
 
     const todosPool = {
         allTodos: [],
         activeTodos: [],
         completedTodos: [],
-        // get all todos from ajax call
-        // sort todos out into categories
-
-        setAllTodos: function(data) {
-            todosPool.allTodos = data;
-            $.each(todosPool.allTodos, function(index, todo) {
-                todo.completed ? todosPool.completedTodos.push(todo) : todosPool.activeTodos.push(todo);
+        init: function() {
+            todoInterface.getAllTodos().done(function(data) {
+                todosToolbox.sortAndSetAllTodos(data);
+                todosToolbox.masterToggleTest();
+                view.render();
             });
+
         },
         addTodo: function(e) {
             const input = e.target.value;
@@ -132,7 +141,7 @@ $(function() {
             const elId = li.data('id');
             const todoToDelete = todosPool.allTodos.find(compareId);
 
-            todoInterface.deleteTodo(elId).done(function (todo) {
+            todoInterface.deleteTodo(elId).done(function(todo) {
                 const arrayToSplice = todo.completed ? todosPool.completedTodos : todosPool.activeTodos;
                 todosToolbox.compositeDelete(arrayToSplice, todoToDelete);
                 li.remove()
@@ -144,45 +153,50 @@ $(function() {
         },
         activateEdit: function(e) {
             const editInput = $(e.target).closest('li').find('.edit');
+
             editInput.removeClass('edit').addClass('editing');
             editInput.val(editInput.val()).focus();
         },
         editTodo: function(e) {
             const todoId = $(e.target).closest('li').data('id');
             const newTodo = e.target.value;
+
             todoInterface.editTodo(todoId, newTodo).done(function(todo) {
                 const arrayToSplice = todo.completed ? todosPool.completedTodos : todosPool.activeTodos;
+
                 todosToolbox.compositeEdit(arrayToSplice, todo);
                 view.render();
             });
         },
         toggleTodo: function(e) {
-            const todoId = $(e.target).closest('li').data('id');
-            const todoStatus = $(e.target).prop('checked');
-            todoInterface.toggleTodo(todoId, todoStatus);
+            const $todo = $(e.target);
+            const todoId = $todo.closest('li').data('id');
+            const todoStatus = $todo.prop('checked');
+
+            todoInterface.toggleTodo(todoId, todoStatus).done(function(todo) {
+                const arrayToSplice = todo.completed ? todosPool.activeTodos : todosPool.completedTodos;
+                const arrayToPush = todo.completed ? todosPool.completedTodos : todosPool.activeTodos;
+
+                todosToolbox.compositeToggle(arrayToSplice, arrayToPush, todo);
+                $todo.prop('checked', todo.completed);
+                todosToolbox.masterToggleTest();
+            });
         },
         toggleAll: function(e) {
-            if (todosPool.activeTodos.length === todosPool.allTodos.length) {
-                todoInterface.toggleAllTodos(true);
-            }
-            if (todosPool.completedTodos.length > 0) {
-                todoInterface.toggleAllTodos(false);
-            }
-        },
-        triggerMasterToggle: function() {
-            if (todosPool.allTodos.length === 0) return;
-            if (todosPool.completedTodos.length === todosPool.allTodos.length) {
-                $('#toggle-all').prop('checked', true);
-            }
-            if (todosPool.completedTodos.length < todosPool.allTodos.length) {
-                $('#toggle-all').prop('checked', false);
-            }
+            const $masterToggle = $(e.target);
+            const value = $masterToggle.prop('checked');
+            console.log(value);
+
+            todoInterface.toggleAllTodos(value).done(function() {
+                todosToolbox.compositeToggleAll(value);
+                view.render();
+            });
         }
     }
 
     const view = {
         init: function() {
-            todoInterface.getAllTodos();
+            todosPool.init();
             this.todoListSource = $('#todoListPre').html();
             this.todoListTemplate = Handlebars.compile(this.todoListSource);
 
@@ -199,13 +213,13 @@ $(function() {
 
         },
         bindEvents: function() {
-            $('#user-input').on('change', todosPool.addTodo.bind(this));
-            $('#toggle-all').on('click', todosPool.toggleAll.bind(this));
+            $('#user-input').on('change', todosPool.addTodo);
+            $('#toggle-all').on('click', todosPool.toggleAll);
             $('#todo-list')
                 .on('click', '.delete', todosPool.deleteTodo)
-                .on('click', '.toggle', todosPool.toggleTodo.bind(this))
-                .on('dblclick', 'li', todosPool.activateEdit.bind(this))
-                .on('change', '.editing', todosPool.editTodo.bind(this));
+                .on('click', '.toggle', todosPool.toggleTodo)
+                .on('dblclick', 'li', todosPool.activateEdit)
+                .on('change', '.editing', todosPool.editTodo);
         }
     }
     view.init();
