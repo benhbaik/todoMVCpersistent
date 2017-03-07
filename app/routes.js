@@ -73,5 +73,13 @@ router.route('/delete/:id')
             else if (todo) res.status(200).json(todo);
         });
     });
+router.route('/delete-completed')
+    .delete(function(req, res) {
+        var query = { completed: {$in: true} }
+        Todo.remove(query, function(err, data) {
+            if (err) res.status(500).json(err);
+            else if (data) res.status(200).json(data);
+        });
+    });
 
 module.exports = router;
