@@ -10,15 +10,23 @@
 </head>
 
 <body>
-    <input id="toggle-all" type="checkbox">
-    <input id="user-input" type="text">
-    <div id="todo-list"></div>
-    <div id="footer"></div>
+    <div id="todo">
+        <div id="header">
+            <h1>todos</h1>
+            <input id="user-input" type="text">
+        </div>
+        <div id="main">
+            <input id="toggle-all" type="checkbox">
+            <div id="todo-list"></div>
+        </div>
+        <div id="footer"></div>
+    </div>
+
 
     <script id="todoListPre" type="text/x-handlebars-template">
         <ul id="todoList">
             {{#each this}}
-            <li data-id="{{_id}}">
+            <li data-id="{{id}}">
                 <input class="toggle" type="checkbox" {{#if completed}}checked{{else}}{{/if}}>
                 <div class="view">
                     <label>{{title}}</label>

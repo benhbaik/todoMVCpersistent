@@ -60,9 +60,14 @@ $(function() {
             view.completedTodos = tempCompletedTodos;
             view.activeTodos = tempActiveTodos;
         },
+        getFilteredTodos: function() {
+            if (view.filter === 'all') return view.allTodos;
+            if (view.filter === 'completed') return view.completedTodos;
+            if (view.filter === 'active') return view.activeTodos;
+        },
         masterToggleTest: function() {
             const $masterToggle = $('#toggle-all');
-
+            
             if (view.completedTodos.length === view.allTodos.length) {
                 $masterToggle.prop('checked', true);
             } else {
@@ -126,7 +131,7 @@ $(function() {
         editTodo: function(e) {
             const todoId = $(e.target).closest('li').data('id');
             const newTodo = e.target.value;
-            const index = todosToolbox.getTodoIndex();
+            const index = todosToolbox.getTodoIndex(todoId);
 
             todoInterface.editTodo(todoId, newTodo).done(function(todo) {
                 view.allTodos[index] = todo;
@@ -137,7 +142,7 @@ $(function() {
             const $todo = $(e.target);
             const todoId = $todo.closest('li').data('id');
             const todoStatus = $todo.prop('checked');
-            const index = todosToolbox.getTodoIndex();
+            const index = todosToolbox.getTodoIndex(todoId);
 
             todoInterface.toggleTodo(todoId, todoStatus).done(function(todo) {
                 view.allTodos[index].completed = todo.completed;
@@ -170,26 +175,34 @@ $(function() {
             this.footerSource = $('#footerPre').html();
             this.footerTemplate = Handlebars.compile(this.footerSource);
             this.bindEvents();
+
+             new Router({
+                 '/:filter': function(filter) {
+                     this.filter = filter;
+                     this.render();
+                 }.bind(this)
+             }).init('#/all');
         },
         render: function() {
+            const todos = todosToolbox.getFilteredTodos();
             todosToolbox.sortAndSetAllTodos(this.allTodos);
             todosToolbox.masterToggleTest();
-            $('#todo-list').html(this.todoListTemplate(this.allTodos));
-            todosToolbox.getFooterData();
+            $('#todo-list').html(this.todoListTemplate(todos));
             this.renderFooter();
         },
         renderFooter: function() {
+            todosToolbox.getFooterData();
             $('#footer').html(this.footerTemplate(this));
         },
         bindEvents: function() {
-            $('#user-input').on('change', todosPool.addTodo.bind(this));
-            $('#toggle-all').on('click', todosPool.toggleAll.bind(this));
-            $('#footer').on('click', '#delete-completed', todosPool.deleteCompleted.bind(this));
+            $('#user-input').on('change', todosPool.addTodo);
+            $('#toggle-all').on('click', todosPool.toggleAll);
+            $('#footer').on('click', '#delete-completed', todosPool.deleteCompleted);
             $('#todo-list')
-                .on('click', '.delete', todosPool.deleteTodo.bind(this))
-                .on('click', '.toggle', todosPool.toggleTodo.bind(this))
-                .on('dblclick', 'li', todosPool.activateEdit.bind(this))
-                .on('change', '.editing', todosPool.editTodo.bind(this));
+                .on('click', '.delete', todosPool.deleteTodo)
+                .on('click', '.toggle', todosPool.toggleTodo)
+                .on('dblclick', 'li', todosPool.activateEdit)
+                .on('change', '.editing', todosPool.editTodo);
         }
     }
     view.init();
