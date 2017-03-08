@@ -67,7 +67,7 @@ $(function() {
         },
         masterToggleTest: function() {
             const $masterToggle = $('#toggle-all');
-            
+
             if (view.completedTodos.length === view.allTodos.length) {
                 $masterToggle.prop('checked', true);
             } else {
@@ -91,7 +91,7 @@ $(function() {
         }
     }
 
-    const todosPool = {
+    const todoActions = {
         init: function() {
             todoInterface.getAllTodos().done(function(data) {
                 todosToolbox.sortAndSetAllTodos(data);
@@ -169,7 +169,7 @@ $(function() {
         completeCount: 0,
         todoWord: '',
         init: function() {
-            todosPool.init();
+            todoActions.init();
             this.todoListSource = $('#todoListPre').html();
             this.todoListTemplate = Handlebars.compile(this.todoListSource);
             this.footerSource = $('#footerPre').html();
@@ -195,14 +195,14 @@ $(function() {
             $('#footer').html(this.footerTemplate(this));
         },
         bindEvents: function() {
-            $('#user-input').on('change', todosPool.addTodo);
-            $('#toggle-all').on('click', todosPool.toggleAll);
-            $('#footer').on('click', '#delete-completed', todosPool.deleteCompleted);
+            $('#user-input').on('change', todoActions.addTodo);
+            $('#toggle-all').on('click', todoActions.toggleAll);
+            $('#footer').on('click', '#delete-completed', todoActions.deleteCompleted);
             $('#todo-list')
-                .on('click', '.delete', todosPool.deleteTodo)
-                .on('click', '.toggle', todosPool.toggleTodo)
-                .on('dblclick', 'li', todosPool.activateEdit)
-                .on('change', '.editing', todosPool.editTodo);
+                .on('click', '.delete', todoActions.deleteTodo)
+                .on('click', '.toggle', todoActions.toggleTodo)
+                .on('dblclick', 'li', todoActions.activateEdit)
+                .on('change', '.editing', todoActions.editTodo);
         }
     }
     view.init();

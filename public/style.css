@@ -1,6 +1,44 @@
+* {
+    box-sizing: border-box;
+}
+
 #todo {
+    position: relative;
     width: 30em;
     margin: 0 auto;
+}
+
+h1 {
+    font-family: Arial;
+    font-size: 5em;
+    text-align: center;
+}
+
+#user-input-container {
+    width: 25.5em;
+    margin: 0 auto;
+}
+
+#user-input {
+    width: 37em;
+    height: 3em;
+}
+
+#toggle-all {
+    position: relative;
+    top: -2.5em;
+}
+
+#main {
+    position: relative;
+}
+
+.view {
+    display: inline;
+}
+
+#todo-list>li {
+    margin-bottom: 1em;
 }
 
 .edit {
@@ -9,4 +47,17 @@
 
 .editing {
     display: absolute;
+}
+
+#footer {
+    width: 30em;
+}
+
+#footer>p {
+    float: left;
+    margin: 0 1em;
+}
+
+#delete-completed {
+    margin: 0 1em;
 }
