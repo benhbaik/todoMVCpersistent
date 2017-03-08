@@ -12,6 +12,7 @@ h1 {
     font-family: Arial;
     font-size: 5em;
     text-align: center;
+    color: #1A9E76;
 }
 
 #user-input-container {
@@ -22,11 +23,20 @@ h1 {
 #user-input {
     width: 37em;
     height: 3em;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    border-bottom: 1px solid black;
+}
+
+button, input[type="checkbox"] {
+    outline: none;
 }
 
 #toggle-all {
     position: relative;
     top: -2.5em;
+    display: block;
 }
 
 #main {
