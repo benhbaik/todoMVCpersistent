@@ -8,35 +8,19 @@
     margin: 0 auto;
 }
 
+#header {
+    margin-bottom: 3em;
+}
+
+.input-group {
+    margin-top: 3em;
+}
+
 h1 {
     font-family: Arial;
     font-size: 5em;
     text-align: center;
     color: #1A9E76;
-}
-
-#user-input-container {
-    width: 25.5em;
-    margin: 0 auto;
-}
-
-#user-input {
-    width: 37em;
-    height: 3em;
-    border: 0;
-    outline: 0;
-    background: transparent;
-    border-bottom: 1px solid black;
-}
-
-button, input[type="checkbox"] {
-    outline: none;
-}
-
-#toggle-all {
-    position: relative;
-    top: -2.5em;
-    display: block;
 }
 
 #main {
@@ -60,14 +44,32 @@ button, input[type="checkbox"] {
 }
 
 #footer {
+    margin-top: 2em;
     width: 30em;
 }
 
-#footer>p {
-    float: left;
+#top-footer {
+    margin: 0 auto;
+    width: 15.5em;
+    margin-bottom: 1em;
+}
+
+#top-footer>a {
     margin: 0 1em;
 }
 
+#bottom-footer {
+    margin: 0 auto;
+    width: 21em;
+}
+
+#bottom-footer>p {
+    margin: 0 1em;
+    display: inline;
+}
+
 #delete-completed {
+    display: inline;
+    box-sizing: border-box;
     margin: 0 1em;
 }

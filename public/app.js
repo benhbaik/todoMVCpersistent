@@ -68,7 +68,7 @@ $(function() {
         masterToggleTest: function() {
             const $masterToggle = $('#toggle-all');
 
-            if (view.completedTodos.length === view.allTodos.length) {
+            if (view.allTodos.length !== 0 && view.completedTodos.length === view.allTodos.length) {
                 $masterToggle.prop('checked', true);
             } else {
                 $masterToggle.prop('checked', false);

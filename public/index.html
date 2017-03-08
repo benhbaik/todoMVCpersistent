@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>todoMVC</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link rel="stylesheet" href="./style.css">
 </head>
 
@@ -13,10 +14,14 @@
     <div id="todo">
         <div id="header">
             <h1>todos</h1>
-            <div id="user-input-container"><input id="user-input" type="text"></div>
+            <div class="input-group">
+                <span class="input-group-addon">
+                    <input id="toggle-all" type="checkbox">
+                 </span>
+                <input id="user-input" ype="text" class="form-control" aria-label="...">
+            </div>
         </div>
         <div id="main">
-            <input id="toggle-all" type="checkbox">
             <ul id="todo-list"></ul>
         </div>
         <div id="footer"></div>
@@ -36,11 +41,16 @@
     </script>
 
     <script id="footerPre" type="text/x-handlebars-template">
-        <p>{{completeCount}} item{{todoWord}} complete.</p>
-        <a href="#/all">All</a>
-        <a href="#/active">Active</a>
-        <a href="#/completed">Completed</a> {{#if completeCount}}
-        <button id="delete-completed"><a href="#/all">Clear completed</a></button> {{/if}}
+        <div id="top-footer">
+            <a href="#/all">All</a>
+            <a href="#/active">Active</a>
+            <a href="#/completed">Completed</a>
+        </div>
+        <div id="bottom-footer">
+            <p>{{completeCount}} item{{todoWord}} complete.</p>
+            {{#if completeCount}}
+            <button id="delete-completed"><a href="#/all">Clear completed</a></button> {{/if}}
+        </div>
     </script>
 
     <script src="./components/jquery/dist/jquery.js"></script>
